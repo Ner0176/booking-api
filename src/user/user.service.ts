@@ -10,6 +10,10 @@ export class UserService {
     @InjectRepository(User) private userRepository: Repository<User>,
   ) {}
 
+  async findAll() {
+    return await this.userRepository.find();
+  }
+
   async findByEmail(email: string) {
     return await this.userRepository.findOne({
       where: { email },
@@ -27,5 +31,9 @@ export class UserService {
 
     const user = this.userRepository.create(payload);
     return await this.userRepository.save(user);
+  }
+
+  async delete(id: string) {
+    await this.userRepository.delete(id);
   }
 }
