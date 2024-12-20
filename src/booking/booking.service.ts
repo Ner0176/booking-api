@@ -25,14 +25,20 @@ export class BookingService {
       throw new BadRequestException('Users ids list is empty');
     }
 
-    const usersInstances = await this.userService.findManyById(userIds);
-    const usersMap = new Map(usersInstances.map((user) => [user.id, user]));
-
     const classInstance = await this.classService.findByAttrs({ id: classId });
+    const { maxAmount, currentCount } = classInstance;
+    if (currentCount >= maxAmount) {
+      throw new BadRequestException(
+        'The class is full, it does not accept more bookings',
+      );
+    }
 
     if (!classInstance) {
       throw new BadRequestException(`Class with id: ${classId} does not exist`);
     }
+
+    const usersInstances = await this.userService.findManyById(userIds);
+    const usersMap = new Map(usersInstances.map((user) => [user.id, user]));
 
     const queryRunner =
       this.bookingRepository.manager.connection.createQueryRunner();
