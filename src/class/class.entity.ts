@@ -9,13 +9,13 @@ export class Class {
   @Column()
   maxAmount: number;
 
-  @Column()
+  @Column({ type: 'date' })
   date: Date;
 
-  @Column()
+  @Column({ type: 'time' })
   startTime: string;
 
-  @Column()
+  @Column({ type: 'time' })
   endTime: string;
 
   @Column({ nullable: true })
