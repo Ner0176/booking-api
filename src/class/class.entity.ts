@@ -1,4 +1,5 @@
-import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
+import { Booking } from 'src/booking/booking.entity';
+import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
 
 @Entity()
 export class Class {
@@ -19,4 +20,7 @@ export class Class {
 
   @Column({ nullable: true })
   recurrentId: string;
+
+  @ManyToOne(() => Booking, (booking) => booking.class)
+  bookings: Booking[];
 }

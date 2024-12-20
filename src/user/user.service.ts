@@ -1,6 +1,6 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { In, Repository } from 'typeorm';
 import { User } from './user.entity';
 import { CreateUserDto } from './dtos';
 
@@ -14,14 +14,18 @@ export class UserService {
     return await this.userRepository.find();
   }
 
-  async findByEmail(email: string) {
+  async findManyById(ids: number[]) {
+    return await this.userRepository.find({ where: { id: In(ids) } });
+  }
+
+  async findByAttrs(attrs: Partial<User>) {
     return await this.userRepository.findOne({
-      where: { email },
+      where: attrs,
     });
   }
 
   async create(payload: CreateUserDto) {
-    const alreadyExists = await this.findByEmail(payload.email);
+    const alreadyExists = await this.findByAttrs({ email: payload.email });
 
     if (alreadyExists) {
       throw new BadRequestException(

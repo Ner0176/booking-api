@@ -5,6 +5,7 @@ import { Repository } from 'typeorm';
 import { CreateClassDto } from './dtos';
 import { RRule } from 'rrule';
 import { DeleteClassDto } from './dtos/delete-class.dto';
+import { createTransaction } from 'src/utils';
 
 @Injectable()
 export class ClassService {
@@ -16,9 +17,9 @@ export class ClassService {
     return await this.classRepository.find();
   }
 
-  async findByAttrs({ date, startTime, endTime }: Partial<Class>) {
+  async findByAttrs({ id, date, startTime, endTime }: Partial<Class>) {
     return await this.classRepository.findOne({
-      where: { date, endTime, startTime },
+      where: { id, date, endTime, startTime },
     });
   }
 
@@ -48,10 +49,8 @@ export class ClassService {
 
     const queryRunner =
       this.classRepository.manager.connection.createQueryRunner();
-    await queryRunner.connect();
-    await queryRunner.startTransaction();
 
-    try {
+    await createTransaction(queryRunner, async () => {
       let datesList: Date[] = [date];
       let recurrentId: string | undefined;
 
@@ -81,14 +80,7 @@ export class ClassService {
         });
         await queryRunner.manager.save(classInstance);
       }
-
-      await queryRunner.commitTransaction();
-    } catch (error) {
-      await queryRunner.rollbackTransaction();
-      throw new Error(`Transaction failed: ${error.message}`);
-    } finally {
-      await queryRunner.release();
-    }
+    });
   }
 
   async delete({ id, isRecurrent }: DeleteClassDto) {
