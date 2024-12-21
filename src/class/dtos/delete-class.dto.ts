@@ -1,4 +1,4 @@
-import { Type } from 'class-transformer';
+import { ToBoolean } from 'src/common';
 import { IsBoolean, IsString } from 'class-validator';
 
 export class DeleteClassDto {
@@ -6,6 +6,6 @@ export class DeleteClassDto {
   id: string;
 
   @IsBoolean()
-  @Type(() => Boolean)
+  @ToBoolean()
   isRecurrent: boolean;
 }

@@ -5,7 +5,7 @@ import { Repository } from 'typeorm';
 import { CreateClassDto } from './dtos';
 import { RRule } from 'rrule';
 import { DeleteClassDto } from './dtos/delete-class.dto';
-import { createTransaction } from 'src/utils';
+import { createTransaction } from 'src/common';
 
 @Injectable()
 export class ClassService {

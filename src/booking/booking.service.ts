@@ -5,8 +5,8 @@ import { Repository } from 'typeorm';
 import { CreateBookingDto } from './dtos';
 import { ClassService } from 'src/class/class.service';
 import { UserService } from 'src/user/user.service';
-import { createTransaction } from 'src/utils';
 import { BookingStatus } from './enums';
+import { createTransaction } from 'src/common';
 
 @Injectable()
 export class BookingService {
