@@ -20,46 +20,52 @@ export class BookingService {
     return await this.bookingRepository.findOne({ where: { id } });
   }
 
-  async create({ userIds, classId }: CreateBookingDto) {
+  private validateUserIds(userIds: number[]) {
     if (!userIds.length) {
       throw new BadRequestException('Users ids list is empty');
     }
 
-    const classInstance = await this.classService.findByAttrs({ id: classId });
-    const { maxAmount, currentCount } = classInstance;
-    if (currentCount >= maxAmount) {
-      throw new BadRequestException(
-        'The class is full, it does not accept more bookings',
-      );
+    if (new Set(userIds).size !== userIds.length) {
+      throw new BadRequestException('Users ids can not be repeated');
     }
+  }
 
+  async create({ userIds, classId }: CreateBookingDto) {
+    this.validateUserIds(userIds);
+
+    const classInstance = await this.classService.findByAttrs({ id: classId });
     if (!classInstance) {
       throw new BadRequestException(`Class with id: ${classId} does not exist`);
     }
 
+    const { maxAmount, currentCount } = classInstance;
+    const newCount = currentCount + userIds.length;
+
+    if (newCount > maxAmount) {
+      throw new BadRequestException(
+        `The class has only ${maxAmount - currentCount} empty spots. You tried to book ${userIds.length} spots.`,
+      );
+    } else classInstance.currentCount = newCount;
+
     const usersInstances = await this.userService.findManyById(userIds);
-    const usersMap = new Map(usersInstances.map((user) => [user.id, user]));
+
+    if (usersInstances.length !== userIds.length) {
+      const invalidIds = userIds.filter(
+        (id) => !usersInstances.find(({ id: instanceId }) => instanceId === id),
+      );
+      throw new BadRequestException(
+        `Users with ids: ${invalidIds.join(', ')} are not valid`,
+      );
+    }
 
     const queryRunner =
       this.bookingRepository.manager.connection.createQueryRunner();
 
     await createTransaction(queryRunner, async () => {
-      for (let i = 0; i < userIds.length; i++) {
-        const userId = userIds[i];
-        const user = usersMap.get(userId);
-
-        if (!user) {
-          throw new BadRequestException(
-            `User with id: ${userId} does not exist`,
-          );
-        }
-
-        const booking = this.bookingRepository.create({
-          user,
-          class: classInstance,
-        });
-        await queryRunner.manager.save(booking);
-      }
+      const bookings = usersInstances.map((user) =>
+        this.bookingRepository.create({ user, class: classInstance }),
+      );
+      await queryRunner.manager.save(bookings);
     });
   }
 
