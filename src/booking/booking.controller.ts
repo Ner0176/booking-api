@@ -2,17 +2,26 @@ import {
   Body,
   Controller,
   Delete,
+  Get,
   Param,
   ParseIntPipe,
   Patch,
   Post,
+  Query,
 } from '@nestjs/common';
 import { BookingService } from './booking.service';
-import { CreateBookingDto } from './dtos';
+import { BookingDto, CreateBookingDto, GetBookingsDto } from './dtos';
+import { Serialize } from 'src/interceptors/serialize.interceptor';
 
 @Controller('booking')
 export class BookingController {
   constructor(private bookingService: BookingService) {}
+
+  @Get('all')
+  @Serialize(BookingDto)
+  async getBookings(@Query() payload: GetBookingsDto) {
+    return await this.bookingService.findAll(payload);
+  }
 
   @Post('create')
   async createBooking(@Body() payload: CreateBookingDto) {

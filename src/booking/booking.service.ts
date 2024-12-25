@@ -2,7 +2,7 @@ import { BadRequestException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Booking } from './booking.entity';
 import { Repository } from 'typeorm';
-import { CreateBookingDto } from './dtos';
+import { CreateBookingDto, GetBookingsDto } from './dtos';
 import { ClassService } from 'src/class/class.service';
 import { UserService } from 'src/user/user.service';
 import { BookingStatus } from './enums';
@@ -15,6 +15,14 @@ export class BookingService {
     private classService: ClassService,
     @InjectRepository(Booking) private bookingRepository: Repository<Booking>,
   ) {}
+
+  async findAll({ userId, classId }: GetBookingsDto) {
+    return await this.bookingRepository.find({
+      relations: ['user', 'class'],
+      select: { user: { id: true }, class: { id: true } },
+      where: { user: { id: userId }, class: { id: classId } },
+    });
+  }
 
   async findById(id: number) {
     return await this.bookingRepository.findOne({ where: { id } });
@@ -63,7 +71,11 @@ export class BookingService {
 
     await createTransaction(queryRunner, async () => {
       const bookings = usersInstances.map((user) =>
-        this.bookingRepository.create({ user, class: classInstance }),
+        this.bookingRepository.create({
+          user,
+          class: classInstance,
+          status: BookingStatus.PENDING,
+        }),
       );
       await queryRunner.manager.save(bookings);
     });
