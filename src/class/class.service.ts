@@ -90,4 +90,8 @@ export class ClassService {
 
     await this.classRepository.delete(filter);
   }
+
+  async decrementAmount(id: number) {
+    await this.classRepository.decrement({ id }, 'currentCount', 1);
+  }
 }

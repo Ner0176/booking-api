@@ -14,11 +14,11 @@ import { BookingDto, CreateBookingDto, GetBookingsDto } from './dtos';
 import { Serialize } from 'src/interceptors/serialize.interceptor';
 
 @Controller('booking')
+@Serialize(BookingDto)
 export class BookingController {
   constructor(private bookingService: BookingService) {}
 
   @Get('all')
-  @Serialize(BookingDto)
   async getBookings(@Query() payload: GetBookingsDto) {
     return await this.bookingService.findAll(payload);
   }
@@ -35,6 +35,6 @@ export class BookingController {
 
   @Delete(':id')
   async deleteBooking(@Param('id', ParseIntPipe) id: number) {
-    await this.bookingService.deleteBooking(id);
+    return await this.bookingService.deleteBooking(id);
   }
 }
