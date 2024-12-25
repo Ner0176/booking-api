@@ -1,12 +1,6 @@
 import { User } from 'src/user/user.entity';
 import { BookingStatus } from './enums';
-import {
-  Column,
-  Entity,
-  ManyToOne,
-  OneToMany,
-  PrimaryGeneratedColumn,
-} from 'typeorm';
+import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
 import { Class } from 'src/class/class.entity';
 
 @Entity()
@@ -20,6 +14,6 @@ export class Booking {
   @ManyToOne(() => User, (user) => user.bookings)
   user: User;
 
-  @OneToMany(() => Class, (classes) => classes.bookings)
+  @ManyToOne(() => Class, (classes) => classes.bookings)
   class: Class;
 }
