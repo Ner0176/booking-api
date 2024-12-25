@@ -9,6 +9,9 @@ export class Class {
   @Column()
   maxAmount: number;
 
+  @Column({ default: 0 })
+  currentCount: number;
+
   @Column({ type: 'date' })
   date: Date;
 
