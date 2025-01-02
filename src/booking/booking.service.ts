@@ -10,7 +10,7 @@ import { createTransaction } from 'src/common';
 
 const BOOKING_RELATIONS = {
   relations: ['user', 'class'],
-  select: { user: { id: true }, class: { id: true } },
+  select: { user: { id: true, name: true }, class: { id: true } },
 };
 
 @Injectable()
