@@ -18,7 +18,7 @@ import { Serialize } from 'src/interceptors/serialize.interceptor';
 export class BookingController {
   constructor(private bookingService: BookingService) {}
 
-  @Get('all')
+  @Get('find')
   async getBookings(@Query() payload: GetBookingsDto) {
     return await this.bookingService.findAll(payload);
   }
