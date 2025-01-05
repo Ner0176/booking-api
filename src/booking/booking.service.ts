@@ -1,7 +1,7 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Booking } from './booking.entity';
-import { Repository } from 'typeorm';
+import { In, Repository } from 'typeorm';
 import { CreateBookingDto, GetBookingsDto } from './dtos';
 import { ClassService } from 'src/class/class.service';
 import { UserService } from 'src/user/user.service';
@@ -45,13 +45,35 @@ export class BookingService {
     }
   }
 
-  async create({ userIds, classId }: CreateBookingDto) {
-    this.validateUserIds(userIds);
-
+  private async validateClass(classId: number) {
     const classInstance = await this.classService.findByAttrs({ id: classId });
+
     if (!classInstance) {
       throw new BadRequestException(`Class with id: ${classId} does not exist`);
     }
+
+    return classInstance;
+  }
+
+  private async findAndValidateUsers(userIds: number[]) {
+    const users = await this.userService.findManyById(userIds);
+
+    if (users.length !== userIds.length) {
+      const invalidIds = userIds.filter(
+        (id) => !users.find(({ id: foundId }) => foundId === id),
+      );
+      throw new BadRequestException(
+        `Users with ids: ${invalidIds.join(', ')} are not valid`,
+      );
+    }
+
+    return users;
+  }
+
+  async create({ userIds, classId }: CreateBookingDto) {
+    this.validateUserIds(userIds);
+
+    const classInstance = await this.validateClass(classId);
 
     const { maxAmount, currentCount } = classInstance;
     const newCount = currentCount + userIds.length;
@@ -62,25 +84,16 @@ export class BookingService {
       );
     }
 
-    const usersInstances = await this.userService.findManyById(userIds);
-
-    if (usersInstances.length !== userIds.length) {
-      const invalidIds = userIds.filter(
-        (id) => !usersInstances.find(({ id: instanceId }) => instanceId === id),
-      );
-      throw new BadRequestException(
-        `Users with ids: ${invalidIds.join(', ')} are not valid`,
-      );
-    }
+    const userInstances = await this.findAndValidateUsers(userIds);
 
     const queryRunner =
       this.bookingRepository.manager.connection.createQueryRunner();
 
     await createTransaction(queryRunner, async () => {
-      classInstance.currentCount = newCount;
+      classInstance.currentCount = classInstance.currentCount + userIds.length;
       await queryRunner.manager.save(classInstance);
 
-      const bookings = usersInstances.map((user) =>
+      const bookings = userInstances.map((user) =>
         this.bookingRepository.create({
           user,
           class: classInstance,
@@ -88,6 +101,54 @@ export class BookingService {
         }),
       );
       await queryRunner.manager.save(bookings);
+    });
+  }
+
+  async editClassBookings({ classId, userIds: newUserIds }: CreateBookingDto) {
+    const classInstance = await this.validateClass(classId);
+
+    const { maxAmount } = classInstance;
+    const currentCount = newUserIds.length;
+
+    if (currentCount > maxAmount) {
+      throw new BadRequestException(
+        `The class has ${maxAmount - currentCount} empty spots. You tried to book ${currentCount} spots.`,
+      );
+    }
+
+    const oldUserIds = classInstance.bookings.map((item) => item.user.id);
+
+    const oldUserIdsSet = new Set(oldUserIds);
+    const newUserIdsSet = new Set(newUserIds);
+
+    const idsToRemove = oldUserIds.filter((id) => !newUserIdsSet.has(id));
+    const idsToAdd = newUserIds.filter((id) => !oldUserIdsSet.has(id));
+
+    const userInstances = await this.findAndValidateUsers(idsToAdd);
+
+    const queryRunner =
+      this.bookingRepository.manager.connection.createQueryRunner();
+
+    await createTransaction(queryRunner, async () => {
+      if (idsToRemove.length) {
+        await queryRunner.manager.delete(this.bookingRepository.target, {
+          class: classInstance,
+          user: In(idsToRemove),
+        });
+      }
+
+      if (idsToAdd.length) {
+        const bookings = userInstances.map((user) =>
+          this.bookingRepository.create({
+            user,
+            class: classInstance,
+          }),
+        );
+        await queryRunner.manager.save(bookings);
+      }
+
+      classInstance.currentCount = newUserIds.length;
+      await queryRunner.manager.save(classInstance);
     });
   }
 

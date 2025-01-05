@@ -33,6 +33,11 @@ export class BookingController {
     return await this.bookingService.cancelBooking(id);
   }
 
+  @Patch('edit')
+  async editClassBookings(@Body() payload: CreateBookingDto) {
+    return await this.bookingService.editClassBookings(payload);
+  }
+
   @Delete(':id')
   async deleteBooking(@Param('id', ParseIntPipe) id: number) {
     return await this.bookingService.deleteBooking(id);
