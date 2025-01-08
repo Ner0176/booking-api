@@ -46,7 +46,10 @@ export class BookingService {
   }
 
   private async validateClass(classId: number) {
-    const classInstance = await this.classService.findByAttrs({ id: classId });
+    const classInstance = await this.classService.findByAttrs(
+      { id: classId },
+      true,
+    );
 
     if (!classInstance) {
       throw new BadRequestException(`Class with id: ${classId} does not exist`);
@@ -130,6 +133,9 @@ export class BookingService {
       this.bookingRepository.manager.connection.createQueryRunner();
 
     await createTransaction(queryRunner, async () => {
+      classInstance.currentCount = newUserIds.length;
+      await queryRunner.manager.save(classInstance);
+
       if (idsToRemove.length) {
         await queryRunner.manager.delete(this.bookingRepository.target, {
           class: classInstance,
@@ -142,13 +148,11 @@ export class BookingService {
           this.bookingRepository.create({
             user,
             class: classInstance,
+            status: BookingStatus.PENDING,
           }),
         );
         await queryRunner.manager.save(bookings);
       }
-
-      classInstance.currentCount = newUserIds.length;
-      await queryRunner.manager.save(classInstance);
     });
   }
 

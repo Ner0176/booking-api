@@ -1,7 +1,7 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Class } from './class.entity';
-import { Repository } from 'typeorm';
+import { FindOneOptions, Repository } from 'typeorm';
 import { CreateClassDto } from './dtos';
 import { RRule } from 'rrule';
 import { DeleteClassDto } from './dtos/delete-class.dto';
@@ -17,10 +17,22 @@ export class ClassService {
     return await this.classRepository.find();
   }
 
-  async findByAttrs({ id, date, startTime, endTime }: Partial<Class>) {
-    return await this.classRepository.findOne({
+  async findByAttrs(
+    { id, date, startTime, endTime }: Partial<Class>,
+    returnFullInfo?: boolean,
+  ) {
+    const queryParams: FindOneOptions<Class> = {
       where: { id, date, endTime, startTime },
-    });
+    };
+
+    if (returnFullInfo) {
+      queryParams.relations = ['bookings', 'bookings.user'];
+      queryParams.select = {
+        bookings: { id: true, status: true, user: { id: true } },
+      };
+    }
+
+    return await this.classRepository.findOne(queryParams);
   }
 
   async create(payload: CreateClassDto) {
