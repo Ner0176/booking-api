@@ -1,8 +1,13 @@
-import { IsNumber } from 'class-validator';
+import { IsBoolean, IsNumber, IsString } from 'class-validator';
+import { ToBoolean } from 'src/common';
 
 export class CreateBookingDto {
-  @IsNumber()
-  classId: number;
+  @IsString()
+  classId: string;
+
+  @IsBoolean()
+  @ToBoolean()
+  isRecurrent: boolean;
 
   @IsNumber({}, { each: true })
   userIds: number[];

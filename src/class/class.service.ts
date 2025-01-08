@@ -17,12 +17,9 @@ export class ClassService {
     return await this.classRepository.find();
   }
 
-  async findByAttrs(
-    { id, date, startTime, endTime }: Partial<Class>,
-    returnFullInfo?: boolean,
-  ) {
+  async findByAttrs(filter: Partial<Class>, returnFullInfo?: boolean) {
     const queryParams: FindOneOptions<Class> = {
-      where: { id, date, endTime, startTime },
+      where: filter,
     };
 
     if (returnFullInfo) {
@@ -32,7 +29,7 @@ export class ClassService {
       };
     }
 
-    return await this.classRepository.findOne(queryParams);
+    return await this.classRepository.find(queryParams);
   }
 
   async create(payload: CreateClassDto) {
@@ -51,7 +48,7 @@ export class ClassService {
       date,
       endTime: end,
       startTime: start,
-    });
+    })[0];
 
     if (existentClass) {
       throw new BadRequestException(
