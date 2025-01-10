@@ -14,7 +14,7 @@ export class ClassController {
 
   @Post('create')
   async createClass(@Body() payload: CreateClassDto) {
-    await this.classService.create(payload);
+    return await this.classService.create(payload);
   }
 
   @Delete('delete')
