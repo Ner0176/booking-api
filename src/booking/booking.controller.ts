@@ -30,7 +30,7 @@ export class BookingController {
 
   @Patch('edit')
   async editClassBookings(@Body() payload: CreateBookingDto) {
-    return await this.bookingService.editClassBookings(payload);
+    await this.bookingService.editClassBookings(payload);
   }
 
   @Patch(':id')
