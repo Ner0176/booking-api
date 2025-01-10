@@ -48,9 +48,9 @@ export class ClassService {
       date,
       endTime: end,
       startTime: start,
-    })[0];
+    });
 
-    if (existentClass) {
+    if (existentClass.length > 0) {
       throw new BadRequestException(
         'There is already a class in the selected time and date',
       );
@@ -58,6 +58,8 @@ export class ClassService {
 
     const queryRunner =
       this.classRepository.manager.connection.createQueryRunner();
+
+    const createdClasses: Class[] = [];
 
     await createTransaction(queryRunner, async () => {
       let datesList: Date[] = [date];
@@ -88,8 +90,11 @@ export class ClassService {
           date: datesList[i],
         });
         await queryRunner.manager.save(classInstance);
+        createdClasses.push(classInstance);
       }
     });
+
+    return createdClasses;
   }
 
   async delete({ id, isRecurrent }: DeleteClassDto) {
