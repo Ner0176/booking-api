@@ -48,8 +48,8 @@ export class BookingService {
 
   private async validateClass(classId: string, isRecurrent: boolean) {
     const filter: Partial<Class> = isRecurrent
-      ? { id: +classId }
-      : { recurrentId: classId };
+      ? { recurrentId: classId }
+      : { id: +classId };
 
     const classInstances = await this.classService.findByAttrs(filter, true);
 
