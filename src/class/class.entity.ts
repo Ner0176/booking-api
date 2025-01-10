@@ -24,8 +24,6 @@ export class Class {
   @Column({ nullable: true })
   recurrentId: string;
 
-  @OneToMany(() => Booking, (booking) => booking.class, {
-    onDelete: 'CASCADE',
-  })
+  @OneToMany(() => Booking, (booking) => booking.class)
   bookings: Booking[];
 }
