@@ -21,6 +21,9 @@ export class Class {
   @Column({ type: 'time' })
   endTime: string;
 
+  @Column({ default: false })
+  cancelled: boolean;
+
   @Column({ nullable: true })
   recurrentId: string;
 
