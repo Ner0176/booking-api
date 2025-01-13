@@ -97,6 +97,20 @@ export class ClassService {
     return createdClasses;
   }
 
+  async editStatus(id: number, cancel: boolean) {
+    const classInstance = await this.classRepository.findOne({
+      where: { id },
+    });
+
+    if (!classInstance) {
+      throw new BadRequestException(`Class with id: ${id} does not exist`);
+    }
+
+    classInstance.cancelled = cancel;
+
+    await this.classRepository.save(classInstance);
+  }
+
   async delete({ id, isRecurrent }: DeleteClassDto) {
     const filter: Partial<Class> = isRecurrent
       ? { recurrentId: id }

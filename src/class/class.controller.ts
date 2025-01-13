@@ -1,4 +1,14 @@
-import { Body, Controller, Delete, Get, Post, Query } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  ParseBoolPipe,
+  ParseIntPipe,
+  Patch,
+  Post,
+  Query,
+} from '@nestjs/common';
 import { ClassService } from './class.service';
 import { CreateClassDto } from './dtos';
 import { DeleteClassDto } from './dtos/delete-class.dto';
@@ -15,6 +25,14 @@ export class ClassController {
   @Post('create')
   async createClass(@Body() payload: CreateClassDto) {
     return await this.classService.create(payload);
+  }
+
+  @Patch('edit-status')
+  async editClassStatus(
+    @Query('id', ParseIntPipe) id: number,
+    @Query('cancel', ParseBoolPipe) cancel: boolean,
+  ) {
+    await this.classService.editStatus(id, cancel);
   }
 
   @Delete('delete')
