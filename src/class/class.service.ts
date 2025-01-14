@@ -2,7 +2,7 @@ import { BadRequestException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Class } from './class.entity';
 import { FindOneOptions, Repository } from 'typeorm';
-import { CreateClassDto, DeleteClassDto } from './dtos';
+import { CreateClassDto } from './dtos';
 import { RRule } from 'rrule';
 import { createTransaction } from 'src/common';
 
@@ -110,7 +110,7 @@ export class ClassService {
     await this.classRepository.save(classInstance);
   }
 
-  async delete({ id, isRecurrent }: DeleteClassDto) {
+  async delete(id: string, isRecurrent: boolean) {
     const filter: Partial<Class> = isRecurrent
       ? { recurrentId: id }
       : { id: +id };

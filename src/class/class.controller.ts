@@ -29,13 +29,16 @@ export class ClassController {
   @Patch(':id')
   async editClassStatus(
     @Param('id', ParseIntPipe) id: number,
-    @Body() payload: EditClassStatusDto,
+    @Body() { cancel }: EditClassStatusDto,
   ) {
-    await this.classService.editStatus(id, payload.cancel);
+    await this.classService.editStatus(id, cancel);
   }
 
-  @Delete('delete')
-  async deleteClass(@Query() query: DeleteClassDto) {
-    await this.classService.delete(query);
+  @Delete(':id')
+  async deleteClass(
+    @Param('id') id: string,
+    @Query() { isRecurrent }: DeleteClassDto,
+  ) {
+    await this.classService.delete(id, isRecurrent);
   }
 }
