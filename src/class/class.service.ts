@@ -2,9 +2,8 @@ import { BadRequestException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Class } from './class.entity';
 import { FindOneOptions, Repository } from 'typeorm';
-import { CreateClassDto } from './dtos';
+import { CreateClassDto, DeleteClassDto } from './dtos';
 import { RRule } from 'rrule';
-import { DeleteClassDto } from './dtos/delete-class.dto';
 import { createTransaction } from 'src/common';
 
 @Injectable()
