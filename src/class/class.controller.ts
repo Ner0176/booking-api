@@ -11,14 +11,15 @@ import {
 } from '@nestjs/common';
 import { ClassService } from './class.service';
 import { CreateClassDto, DeleteClassDto, EditClassStatusDto } from './dtos';
+import { GetAllClassesDto } from './dtos';
 
 @Controller('class')
 export class ClassController {
   constructor(private classService: ClassService) {}
 
   @Get('all')
-  async allClasses() {
-    return await this.classService.findAll();
+  async allClasses(@Query() payload: GetAllClassesDto) {
+    return await this.classService.findAll(payload);
   }
 
   @Post('create')

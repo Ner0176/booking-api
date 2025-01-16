@@ -5,6 +5,8 @@ import { FindOneOptions, Repository } from 'typeorm';
 import { CreateClassDto } from './dtos';
 import { RRule } from 'rrule';
 import { createTransaction } from 'src/common';
+import { GetAllClassesDto } from './dtos';
+import { ClassStatus } from './enums';
 
 @Injectable()
 export class ClassService {
@@ -12,8 +14,32 @@ export class ClassService {
     @InjectRepository(Class) private classRepository: Repository<Class>,
   ) {}
 
-  async findAll() {
-    return await this.classRepository.find();
+  async findAll({ status, period }: GetAllClassesDto) {
+    const today = new Date();
+    const query = this.classRepository.createQueryBuilder('class');
+
+    if (!!status) {
+      switch (status) {
+        case ClassStatus.CANCELLED:
+          query.where('class.cancelled = :cancelled', { cancelled: true });
+          break;
+        case ClassStatus.DONE:
+          query.where('class.date <= :today', { today });
+          break;
+        case ClassStatus.PENDING:
+          query.where('class.date >= :today', { today });
+          break;
+      }
+    }
+
+    if (!!period) {
+      query.andWhere('class.date BETWEEN :start AND :end', {
+        end: period.endDate,
+        start: period.startDate,
+      });
+    }
+
+    return await query.orderBy('class.date', 'ASC').getMany();
   }
 
   async findByAttrs(filter: Partial<Class>, returnFullInfo?: boolean) {
