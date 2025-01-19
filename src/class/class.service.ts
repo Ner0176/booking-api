@@ -14,7 +14,7 @@ export class ClassService {
     @InjectRepository(Class) private classRepository: Repository<Class>,
   ) {}
 
-  async findAll({ status, period }: GetAllClassesDto) {
+  async findAll({ status, startDate, endDate }: GetAllClassesDto) {
     const today = new Date();
     const query = this.classRepository.createQueryBuilder('class');
 
@@ -32,10 +32,10 @@ export class ClassService {
       }
     }
 
-    if (!!period) {
+    if (!!startDate && !!endDate) {
       query.andWhere('class.date BETWEEN :start AND :end', {
-        end: period.endDate,
-        start: period.startDate,
+        end: endDate,
+        start: startDate,
       });
     }
 
