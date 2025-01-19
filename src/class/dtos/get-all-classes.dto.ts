@@ -2,11 +2,6 @@ import { IsDate, IsEnum, IsOptional } from 'class-validator';
 import { ClassStatus } from '../enums';
 import { Type } from 'class-transformer';
 
-class OrderByDateDto {
-  endDate: Date;
-  startDate: Date;
-}
-
 export class GetAllClassesDto {
   @IsOptional()
   @IsEnum(ClassStatus)
@@ -14,6 +9,11 @@ export class GetAllClassesDto {
 
   @IsDate()
   @IsOptional()
-  @Type(() => OrderByDateDto)
-  period: OrderByDateDto;
+  @Type(() => Date)
+  startDate: Date;
+
+  @IsDate()
+  @IsOptional()
+  @Type(() => Date)
+  endDate: Date;
 }
