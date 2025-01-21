@@ -36,6 +36,22 @@ export class BookingService {
     });
   }
 
+  async findBookingsFromUser(userId: number) {
+    const bookings = await this.bookingRepository.find({
+      relations: ['class'],
+      where: { user: { id: userId } },
+    });
+
+    return bookings.reduce(
+      (prev, booking) => {
+        const { status } = booking;
+        prev[status].push(booking);
+        return prev;
+      },
+      { pending: [], completed: [], canceled: [] },
+    );
+  }
+
   private validateUserIds(userIds: number[]) {
     if (!userIds.length) {
       throw new BadRequestException('Users ids list is empty');

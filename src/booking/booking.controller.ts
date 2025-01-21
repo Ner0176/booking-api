@@ -14,13 +14,18 @@ import { BookingDto, CreateBookingDto, GetBookingsDto } from './dtos';
 import { Serialize } from 'src/interceptors/serialize.interceptor';
 
 @Controller('booking')
-@Serialize(BookingDto)
 export class BookingController {
   constructor(private bookingService: BookingService) {}
 
   @Get('find')
+  @Serialize(BookingDto)
   async getBookings(@Query() payload: GetBookingsDto) {
     return await this.bookingService.findAll(payload);
+  }
+
+  @Get('user/:userId')
+  async getBookingsByUserId(@Param('userId', ParseIntPipe) userId: number) {
+    return await this.bookingService.findBookingsFromUser(userId);
   }
 
   @Post('create')
@@ -34,11 +39,13 @@ export class BookingController {
   }
 
   @Patch(':id')
+  @Serialize(BookingDto)
   async cancelBooking(@Param('id', ParseIntPipe) id: number) {
     return await this.bookingService.cancelBooking(id);
   }
 
   @Delete(':id')
+  @Serialize(BookingDto)
   async deleteBooking(@Param('id', ParseIntPipe) id: number) {
     return await this.bookingService.deleteBooking(id);
   }
