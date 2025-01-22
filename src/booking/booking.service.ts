@@ -48,7 +48,7 @@ export class BookingService {
         prev[status].push(booking);
         return prev;
       },
-      { pending: [], completed: [], canceled: [] },
+      { pending: [], completed: [], cancelled: [] },
     );
   }
 
