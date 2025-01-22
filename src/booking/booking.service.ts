@@ -191,7 +191,7 @@ export class BookingService {
 
     await this.classService.decrementAmount(booking.class.id);
 
-    booking.status = BookingStatus.CANCELED;
+    booking.status = BookingStatus.CANCELLED;
     return await this.bookingRepository.save(booking);
   }
 
