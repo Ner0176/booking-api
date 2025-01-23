@@ -11,7 +11,10 @@ import { Class } from 'src/class/class.entity';
 
 const BOOKING_RELATIONS = {
   relations: ['user', 'class'],
-  select: { user: { id: true, name: true }, class: { id: true } },
+  select: {
+    class: { id: true },
+    user: { id: true, name: true, phone: true, email: true },
+  },
 };
 
 @Injectable()

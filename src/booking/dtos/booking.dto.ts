@@ -1,13 +1,6 @@
 import { Expose, Transform, Type } from 'class-transformer';
 import { BookingStatus } from '../enums';
-
-class PartialUserDto {
-  @Expose()
-  id: number;
-
-  @Expose()
-  name: string;
-}
+import { UserDto } from 'src/user/dtos';
 
 export class BookingDto {
   @Expose()
@@ -17,8 +10,8 @@ export class BookingDto {
   status: BookingStatus;
 
   @Expose()
-  @Type(() => PartialUserDto)
-  user: PartialUserDto;
+  @Type(() => UserDto)
+  user: UserDto;
 
   @Expose()
   @Transform(({ obj }) => obj.class.id)
