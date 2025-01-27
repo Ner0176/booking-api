@@ -33,6 +33,11 @@ export class BookingController {
     await this.bookingService.create(payload);
   }
 
+  @Post('/update-status-cron')
+  async updateBookingStatusCron() {
+    return await this.bookingService.updateBookingStatus();
+  }
+
   @Patch('edit')
   async editClassBookings(@Body() payload: CreateBookingDto) {
     await this.bookingService.editClassBookings(payload);

@@ -8,6 +8,7 @@ import { UserService } from 'src/user/user.service';
 import { BookingStatus } from './enums';
 import { createTransaction } from 'src/common';
 import { Class } from 'src/class/class.entity';
+import { Cron, CronExpression } from '@nestjs/schedule';
 
 const BOOKING_RELATIONS = {
   relations: ['user', 'class'],
@@ -207,5 +208,19 @@ export class BookingService {
 
     await this.classService.decrementAmount(booking.class.id);
     return await this.bookingRepository.remove(booking);
+  }
+
+  @Cron(CronExpression.EVERY_HOUR)
+  async updateBookingStatus() {
+    return await this.bookingRepository.query(`
+       UPDATE booking
+       SET status = 'completed'
+       WHERE status = 'pending'
+       AND (
+        SELECT c.date || ' ' || c.endTime
+        FROM "class" c
+        WHERE c.id = booking.classId
+       ) < datetime('now')
+      `);
   }
 }
