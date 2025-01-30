@@ -11,7 +11,7 @@ export class Booking {
   @Column({ type: 'enum', enum: BookingStatus, default: BookingStatus.PENDING })
   status: BookingStatus;
 
-  @ManyToOne(() => User, (user) => user.bookings)
+  @ManyToOne(() => User, (user) => user.bookings, { onDelete: 'CASCADE' })
   user: User;
 
   @ManyToOne(() => Class, (classes) => classes.bookings, {
