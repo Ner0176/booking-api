@@ -12,6 +12,7 @@ import {
 import { BookingService } from './booking.service';
 import { BookingDto, CreateBookingDto, GetBookingsDto } from './dtos';
 import { Serialize } from 'src/interceptors/serialize.interceptor';
+import { AdminGuard } from 'src/decorators';
 
 @Controller('booking')
 export class BookingController {
@@ -38,6 +39,7 @@ export class BookingController {
     return await this.bookingService.updateBookingStatus();
   }
 
+  @AdminGuard()
   @Patch('edit')
   async editClassBookings(@Body() payload: CreateBookingDto) {
     await this.bookingService.editClassBookings(payload);
@@ -49,6 +51,7 @@ export class BookingController {
     return await this.bookingService.cancelBooking(id);
   }
 
+  @AdminGuard()
   @Delete(':id')
   @Serialize(BookingDto)
   async deleteBooking(@Param('id', ParseIntPipe) id: number) {
