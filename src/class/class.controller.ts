@@ -12,7 +12,7 @@ import {
 import { ClassService } from './class.service';
 import { CreateClassDto, DeleteClassDto, EditClassStatusDto } from './dtos';
 import { GetAllClassesDto } from './dtos';
-import { AdminGuard } from 'src/decorators';
+import { Admin } from 'src/decorators';
 
 @Controller('class')
 export class ClassController {
@@ -23,13 +23,13 @@ export class ClassController {
     return await this.classService.findAll(payload);
   }
 
-  @AdminGuard()
+  @Admin()
   @Post('create')
   async createClass(@Body() payload: CreateClassDto) {
     return await this.classService.create(payload);
   }
 
-  @AdminGuard()
+  @Admin()
   @Patch(':id')
   async editClassStatus(
     @Param('id', ParseIntPipe) id: number,
@@ -38,7 +38,7 @@ export class ClassController {
     await this.classService.editStatus(id, cancel);
   }
 
-  @AdminGuard()
+  @Admin()
   @Delete(':id')
   async deleteClass(
     @Param('id') id: string,

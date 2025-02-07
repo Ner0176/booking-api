@@ -1,5 +1,5 @@
 import { applyDecorators, UseGuards } from '@nestjs/common';
 
-export function AdminGuard() {
-  return applyDecorators(UseGuards(AdminGuard));
+export function Admin() {
+  return applyDecorators(UseGuards(Admin));
 }
