@@ -16,7 +16,10 @@ export class ClassService {
 
   async findAll({ status, startDate, endDate }: GetAllClassesDto) {
     const today = new Date();
-    const query = this.classRepository.createQueryBuilder('class');
+    const query = this.classRepository
+      .createQueryBuilder('class')
+      .leftJoin('class.bookings', 'booking')
+      .loadRelationCountAndMap('class.currentCount', 'class.bookings');
 
     if (!!status) {
       switch (status) {
@@ -142,9 +145,5 @@ export class ClassService {
       : { id: +id };
 
     await this.classRepository.delete(filter);
-  }
-
-  async decrementAmount(id: number) {
-    await this.classRepository.decrement({ id }, 'currentCount', 1);
   }
 }

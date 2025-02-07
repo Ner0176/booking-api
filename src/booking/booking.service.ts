@@ -106,7 +106,8 @@ export class BookingService {
 
     await createTransaction(queryRunner, async () => {
       for (const classInstance of classes) {
-        const { maxAmount, currentCount } = classInstance;
+        const { maxAmount, bookings: classBookings } = classInstance;
+        const currentCount = classBookings.length;
         const newCount = currentCount + userIds.length;
 
         if (newCount > maxAmount) {
@@ -115,8 +116,6 @@ export class BookingService {
           );
         }
 
-        classInstance.currentCount =
-          classInstance.currentCount + userIds.length;
         await queryRunner.manager.save(classInstance);
 
         const bookings = userInstances.map((user) =>
@@ -162,7 +161,6 @@ export class BookingService {
 
         const userInstances = await this.findAndValidateUsers(idsToAdd);
 
-        classInstance.currentCount = newUserIds.length;
         await queryRunner.manager.save(classInstance);
 
         if (idsToRemove.length) {
@@ -193,8 +191,6 @@ export class BookingService {
       throw new BadRequestException(`Booking with id: ${id} does not exist`);
     }
 
-    await this.classService.decrementAmount(booking.class.id);
-
     booking.status = BookingStatus.CANCELLED;
     return await this.bookingRepository.save(booking);
   }
@@ -206,7 +202,6 @@ export class BookingService {
       throw new BadRequestException(`Booking with id: ${id} does not exist`);
     }
 
-    await this.classService.decrementAmount(booking.class.id);
     return await this.bookingRepository.remove(booking);
   }
 
