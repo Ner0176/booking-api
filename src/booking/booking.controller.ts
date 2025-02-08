@@ -11,8 +11,8 @@ import {
 } from '@nestjs/common';
 import { BookingService } from './booking.service';
 import { BookingDto, CreateBookingDto, GetBookingsDto } from './dtos';
-import { Serialize } from 'src/interceptors/serialize.interceptor';
 import { Admin } from 'src/decorators';
+import { Serialize } from 'src/interceptors';
 
 @Controller('booking')
 export class BookingController {
