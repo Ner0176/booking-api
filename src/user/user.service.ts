@@ -2,7 +2,7 @@ import { BadRequestException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { In, Repository } from 'typeorm';
 import { User } from './user.entity';
-import { CreateUserDto } from './dtos';
+import { CreateUserDto, UpdateUserDto } from './dtos';
 
 @Injectable()
 export class UserService {
@@ -35,6 +35,16 @@ export class UserService {
 
     const user = this.userRepository.create(payload);
     return await this.userRepository.save(user);
+  }
+
+  async update(id: number, payload: UpdateUserDto) {
+    const user = await this.findByAttrs({ id });
+
+    if (!user) {
+      throw new BadRequestException(`User with id: ${id} does not exist`);
+    }
+
+    return await this.userRepository.save({ ...user, ...payload });
   }
 
   async delete(id: string) {
