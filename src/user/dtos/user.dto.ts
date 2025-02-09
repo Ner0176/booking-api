@@ -11,5 +11,8 @@ export class UserDto {
   email: string;
 
   @Expose()
+  language: string;
+
+  @Expose()
   phone: string | null;
 }

@@ -4,7 +4,6 @@ import {
   Delete,
   Get,
   Param,
-  ParseIntPipe,
   Patch,
   Req,
 } from '@nestjs/common';
@@ -29,12 +28,10 @@ export class UserController {
     return await this.userService.findByAttrs({ id: req['user'].id });
   }
 
-  @Patch(':id')
-  async updateUser(
-    @Param('id', ParseIntPipe) id: number,
-    @Body() payload: UpdateUserDto,
-  ) {
-    return await this.userService.update(id, payload);
+  @Patch('update')
+  async updateUser(@Body() payload: UpdateUserDto, @Req() req: Request) {
+    const { id, ...rest } = payload;
+    return await this.userService.update(id ?? req['user'].id, rest);
   }
 
   @Admin()

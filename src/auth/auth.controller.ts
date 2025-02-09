@@ -14,14 +14,14 @@ export class AuthController {
   @Post('signup')
   async signUp(@Body() payload: CreateUserDto) {
     const user = await this.authService.createUser(payload);
-    return user.id;
+    return { id: user.id, isAdmin: user.isAdmin, language: user.language };
   }
 
   @SetCookie()
   @Post('login')
   async login(@Body() payload: LoginUserDto) {
     const user = await this.authService.validateUser(payload);
-    return user.id;
+    return { id: user.id, isAdmin: user.isAdmin, language: user.language };
   }
 
   @Post('logout')
