@@ -6,6 +6,7 @@ import {
   Param,
   ParseIntPipe,
   Patch,
+  Req,
 } from '@nestjs/common';
 import { UserService } from './user.service';
 import { UpdateUserDto, UserDto } from './dtos';
@@ -17,15 +18,15 @@ import { Serialize } from 'src/interceptors';
 export class UserController {
   constructor(private userService: UserService) {}
 
-  @Get(':id')
-  async findUser(@Param('id', ParseIntPipe) id: number) {
-    return await this.userService.findByAttrs({ id });
-  }
-
   @Admin()
   @Get('all')
   async allUsers() {
     return await this.userService.findAll();
+  }
+
+  @Get('findMe')
+  async findUser(@Req() req: Request) {
+    return await this.userService.findByAttrs({ id: req['user'].id });
   }
 
   @Patch(':id')
