@@ -12,6 +12,9 @@ export class User {
   @Column()
   email: string;
 
+  @Column({ default: 'es' })
+  language: string;
+
   @Column()
   password: string;
 

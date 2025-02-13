@@ -8,6 +8,7 @@ import { AuthModule } from './auth/auth.module';
 import { BookingModule } from './booking/booking.module';
 import { ScheduleModule } from '@nestjs/schedule';
 import { UserMiddleWare } from './middlewares';
+import { ClassConfigModules } from './class-configs/class-configs.module';
 
 @Module({
   imports: [
@@ -21,6 +22,7 @@ import { UserMiddleWare } from './middlewares';
     AuthModule,
     ClassModule,
     BookingModule,
+    ClassConfigModules,
     ScheduleModule.forRoot(),
   ],
   controllers: [AppController],
