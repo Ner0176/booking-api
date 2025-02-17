@@ -15,7 +15,11 @@ export class Booking {
   user: User;
 
   @ManyToOne(() => Class, (classes) => classes.bookings, {
+    nullable: true,
     onDelete: 'CASCADE',
   })
   class: Class;
+
+  @ManyToOne(() => Class, { nullable: true, onDelete: 'CASCADE' })
+  originalClass?: Class;
 }

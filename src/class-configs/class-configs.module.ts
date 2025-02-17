@@ -5,6 +5,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { ClassConfigs } from './class-configs.entity';
 
 @Module({
+  exports: [ClassConfigsService],
   providers: [ClassConfigsService],
   controllers: [ClassConfigsController],
   imports: [TypeOrmModule.forFeature([ClassConfigs])],

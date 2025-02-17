@@ -8,11 +8,18 @@ import {
   Patch,
   Post,
   Query,
+  Req,
 } from '@nestjs/common';
 import { BookingService } from './booking.service';
-import { BookingDto, CreateBookingDto, GetBookingsDto } from './dtos';
+import {
+  BookingDto,
+  CreateBookingDto,
+  GetBookingsDto,
+  GetUserBookingsDto,
+} from './dtos';
 import { Admin } from 'src/decorators';
 import { Serialize } from 'src/interceptors';
+import { Request } from 'express';
 
 @Controller('booking')
 export class BookingController {
@@ -25,8 +32,11 @@ export class BookingController {
   }
 
   @Get('user/:userId')
-  async getBookingsByUserId(@Param('userId', ParseIntPipe) userId: number) {
-    return await this.bookingService.findBookingsFromUser(userId);
+  async getBookingsByUserId(
+    @Param('userId', ParseIntPipe) userId: number,
+    @Query() payload: GetUserBookingsDto,
+  ) {
+    return await this.bookingService.findBookingsFromUser(userId, payload);
   }
 
   @Post('create')
@@ -47,8 +57,11 @@ export class BookingController {
 
   @Patch(':id')
   @Serialize(BookingDto)
-  async cancelBooking(@Param('id', ParseIntPipe) id: number) {
-    return await this.bookingService.cancelBooking(id);
+  async cancelBooking(
+    @Param('id', ParseIntPipe) id: number,
+    @Req() req: Request,
+  ) {
+    return await this.bookingService.cancelBooking(id, req['user'].id);
   }
 
   @Admin()
