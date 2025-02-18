@@ -8,7 +8,6 @@ import {
   Patch,
   Post,
   Query,
-  Req,
 } from '@nestjs/common';
 import { BookingService } from './booking.service';
 import {
@@ -17,9 +16,8 @@ import {
   GetBookingsDto,
   GetUserBookingsDto,
 } from './dtos';
-import { Admin } from 'src/decorators';
+import { Admin, User, UserCookie } from 'src/decorators';
 import { Serialize } from 'src/interceptors';
-import { Request } from 'express';
 
 @Controller('booking')
 export class BookingController {
@@ -58,9 +56,9 @@ export class BookingController {
   @Patch(':id')
   async cancelBooking(
     @Param('id', ParseIntPipe) id: number,
-    @Req() req: Request,
+    @User() user: UserCookie,
   ) {
-    await this.bookingService.cancelBooking(id, req['user'].id);
+    return await this.bookingService.cancelBooking(id, user.id);
   }
 
   @Admin()

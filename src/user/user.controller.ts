@@ -1,17 +1,8 @@
-import {
-  Body,
-  Controller,
-  Delete,
-  Get,
-  Param,
-  Patch,
-  Req,
-} from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Patch } from '@nestjs/common';
 import { UserService } from './user.service';
 import { UpdateUserDto, UserDto } from './dtos';
-import { Admin } from 'src/decorators';
+import { Admin, User, UserCookie } from 'src/decorators';
 import { Serialize } from 'src/interceptors';
-import { Request } from 'express';
 
 @Controller('user')
 @Serialize(UserDto)
@@ -20,19 +11,19 @@ export class UserController {
 
   @Admin()
   @Get('all')
-  async allUsers(@Req() req: Request) {
-    return await this.userService.findAll(req['user'].id);
+  async allUsers(@User() { id }: UserCookie) {
+    return await this.userService.findAll(id);
   }
 
   @Get('findMe')
-  async findUser(@Req() req: Request) {
-    return await this.userService.findByAttrs({ id: req['user'].id });
+  async findUser(@User() { id }: UserCookie) {
+    return await this.userService.findByAttrs({ id });
   }
 
   @Patch('update')
-  async updateUser(@Body() payload: UpdateUserDto, @Req() req: Request) {
+  async updateUser(@Body() payload: UpdateUserDto, @User() user: UserCookie) {
     const { id, ...rest } = payload;
-    return await this.userService.update(id ?? req['user'].id, rest);
+    return await this.userService.update(id ?? user.id, rest);
   }
 
   @Admin()
