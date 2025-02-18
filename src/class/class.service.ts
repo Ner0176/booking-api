@@ -1,4 +1,9 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  forwardRef,
+  Inject,
+  Injectable,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Class } from './class.entity';
 import { FindOneOptions, Repository } from 'typeorm';
@@ -7,10 +12,13 @@ import { RRule } from 'rrule';
 import { createTransaction } from 'src/common';
 import { GetAllClassesDto } from './dtos';
 import { ClassStatus } from './enums';
+import { BookingService } from 'src/booking/booking.service';
 
 @Injectable()
 export class ClassService {
   constructor(
+    @Inject(forwardRef(() => BookingService))
+    private bookingService: BookingService,
     @InjectRepository(Class) private classRepository: Repository<Class>,
   ) {}
 
@@ -45,16 +53,16 @@ export class ClassService {
     return await query.orderBy('class.date', 'ASC').getMany();
   }
 
-  async findByAttrs(filter: Partial<Class>, returnFullInfo?: boolean) {
-    const queryParams: FindOneOptions<Class> = {
+  async findByAttrs(
+    filter: Partial<Class>,
+    dynamicQueryFilters?: FindOneOptions<Class>,
+  ) {
+    let queryParams: FindOneOptions<Class> = {
       where: filter,
     };
 
-    if (returnFullInfo) {
-      queryParams.relations = ['bookings', 'bookings.user'];
-      queryParams.select = {
-        bookings: { id: true, status: true, user: { id: true } },
-      };
+    if (dynamicQueryFilters) {
+      queryParams = { ...queryParams, ...dynamicQueryFilters };
     }
 
     return await this.classRepository.find(queryParams);
@@ -128,6 +136,7 @@ export class ClassService {
   async editStatus(id: number, cancel: boolean) {
     const classInstance = await this.classRepository.findOne({
       where: { id },
+      relations: ['bookings'],
     });
 
     if (!classInstance) {
@@ -135,8 +144,25 @@ export class ClassService {
     }
 
     classInstance.cancelled = cancel;
-
     await this.classRepository.save(classInstance);
+
+    const bookings = cancel
+      ? classInstance.bookings || []
+      : (await this.bookingService.findByOriginalClassId(id)) || [];
+
+    if (!bookings.length) return;
+
+    for (const booking of bookings) {
+      if (cancel) {
+        booking.originalClass = booking.class;
+        booking.class = null;
+      } else {
+        booking.class = booking.originalClass;
+        booking.originalClass = null;
+      }
+    }
+
+    await this.bookingService.saveBookings(bookings);
   }
 
   async delete(id: string, isRecurrent: boolean) {

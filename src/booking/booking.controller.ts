@@ -56,12 +56,11 @@ export class BookingController {
   }
 
   @Patch(':id')
-  @Serialize(BookingDto)
   async cancelBooking(
     @Param('id', ParseIntPipe) id: number,
     @Req() req: Request,
   ) {
-    return await this.bookingService.cancelBooking(id, req['user'].id);
+    await this.bookingService.cancelBooking(id, req['user'].id);
   }
 
   @Admin()

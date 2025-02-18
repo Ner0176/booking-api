@@ -1,4 +1,9 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  forwardRef,
+  Inject,
+  Injectable,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Booking } from './booking.entity';
 import { In, Repository } from 'typeorm';
@@ -12,18 +17,11 @@ import { Cron, CronExpression } from '@nestjs/schedule';
 import { ClassConfigsService } from 'src/class-configs/class-configs.service';
 import { differenceInMinutes, startOfMonth } from 'date-fns';
 
-const BOOKING_RELATIONS = {
-  relations: ['user', 'class'],
-  select: {
-    class: { id: true },
-    user: { id: true, name: true, phone: true, email: true },
-  },
-};
-
 @Injectable()
 export class BookingService {
   constructor(
     private userService: UserService,
+    @Inject(forwardRef(() => ClassService))
     private classService: ClassService,
     private classConfigsService: ClassConfigsService,
     @InjectRepository(Booking) private bookingRepository: Repository<Booking>,
@@ -31,15 +29,25 @@ export class BookingService {
 
   async findAll({ userId, classId }: GetBookingsDto) {
     return await this.bookingRepository.find({
-      ...BOOKING_RELATIONS,
       where: { user: { id: userId }, class: { id: classId } },
+      relations: ['user', 'class'],
+      select: {
+        class: { id: true },
+        user: { id: true, name: true, phone: true, email: true },
+      },
     });
   }
 
   async findById(id: number) {
     return await this.bookingRepository.findOne({
       where: { id },
-      ...BOOKING_RELATIONS,
+      relations: ['class'],
+    });
+  }
+
+  async findByOriginalClassId(classId: number) {
+    return await this.bookingRepository.find({
+      where: { originalClass: { id: classId } },
     });
   }
 
@@ -50,6 +58,7 @@ export class BookingService {
       .createQueryBuilder('booking')
       .leftJoinAndSelect('booking.class', 'class')
       .leftJoin('booking.user', 'user')
+      .loadRelationCountAndMap('class.currentCount', 'class.bookings')
       .where('user.id = :userId', { userId });
 
     if (!!status && status.length > 0) {
@@ -81,7 +90,12 @@ export class BookingService {
       ? { recurrentId: classId }
       : { id: +classId };
 
-    const classInstances = await this.classService.findByAttrs(filter, true);
+    const classInstances = await this.classService.findByAttrs(filter, {
+      relations: ['bookings', 'bookings.user'],
+      select: {
+        bookings: { id: true, status: true, user: { id: true } },
+      },
+    });
 
     if (!classInstances.length) {
       throw new BadRequestException(`Class with id: ${classId} does not exist`);
@@ -205,9 +219,9 @@ export class BookingService {
     const { maxCancellationPerMonth, minHoursBeforeCancellation } =
       await this.classConfigsService.getClassConfigs();
 
-    const minutesDiff = differenceInMinutes(now, classDate);
+    const minutesDiff = differenceInMinutes(classDate, now);
     const hoursDiff = minutesDiff / 60;
-    if (hoursDiff > minHoursBeforeCancellation) {
+    if (hoursDiff < minHoursBeforeCancellation) {
       throw new BadRequestException(
         `User ${userId} tried to cancel booking ${id} after the allowed time had expired.`,
       );
@@ -239,6 +253,10 @@ export class BookingService {
     }
 
     return await this.bookingRepository.remove(booking);
+  }
+
+  async saveBookings(bookings: Booking[]) {
+    await this.bookingRepository.save(bookings);
   }
 
   @Cron(CronExpression.EVERY_HOUR)
