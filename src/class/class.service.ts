@@ -98,24 +98,23 @@ export class ClassService {
     const createdClasses: Class[] = [];
 
     await createTransaction(queryRunner, async () => {
-      let datesList: Date[] = [date];
+      let datesList: Date[] = [];
       let recurrentId: string | undefined;
 
       if (!!recurrencyLimit) {
         const rule = new RRule({
-          freq: RRule.WEEKLY,
-          byweekday: date.getDay(),
           dtstart: date,
+          freq: RRule.WEEKLY,
           until: recurrencyLimit,
         });
 
-        datesList = [...datesList, ...rule.all()];
+        datesList = rule.all();
 
         const weekday = new Intl.DateTimeFormat('es-Es', {
           weekday: 'long',
         }).format(date);
         recurrentId = `${weekday}_${start}_${end}`;
-      }
+      } else datesList = [date];
 
       for (let i = 0; i < datesList.length; i++) {
         const classInstance = this.classRepository.create({
