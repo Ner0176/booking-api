@@ -1,6 +1,6 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { In, Repository } from 'typeorm';
+import { In, Not, Repository } from 'typeorm';
 import { User } from './user.entity';
 import { CreateUserDto, UpdateUserDto } from './dtos';
 
@@ -10,8 +10,8 @@ export class UserService {
     @InjectRepository(User) private userRepository: Repository<User>,
   ) {}
 
-  async findAll() {
-    return await this.userRepository.find();
+  async findAll(userId: number) {
+    return await this.userRepository.find({ where: { id: Not(userId) } });
   }
 
   async findManyById(ids: number[]) {

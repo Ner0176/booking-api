@@ -11,6 +11,7 @@ import { UserService } from './user.service';
 import { UpdateUserDto, UserDto } from './dtos';
 import { Admin } from 'src/decorators';
 import { Serialize } from 'src/interceptors';
+import { Request } from 'express';
 
 @Controller('user')
 @Serialize(UserDto)
@@ -19,8 +20,8 @@ export class UserController {
 
   @Admin()
   @Get('all')
-  async allUsers() {
-    return await this.userService.findAll();
+  async allUsers(@Req() req: Request) {
+    return await this.userService.findAll(req['user'].id);
   }
 
   @Get('findMe')
