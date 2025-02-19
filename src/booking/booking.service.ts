@@ -86,7 +86,9 @@ export class BookingService {
       });
     }
 
-    return await query.orderBy('class.date', 'ASC').getMany();
+    return await query
+      .orderBy('MIN(class.date, originalClass.date)', 'ASC')
+      .getMany();
   }
 
   private validateUserIds(userIds: number[]) {
