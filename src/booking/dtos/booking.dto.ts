@@ -1,13 +1,13 @@
-import { Expose, Transform, Type } from 'class-transformer';
-import { BookingStatus } from '../enums';
+import { Status } from 'src/common';
 import { UserDto } from 'src/user/dtos';
+import { Expose, Transform, Type } from 'class-transformer';
 
 export class BookingDto {
   @Expose()
   id: number;
 
   @Expose()
-  status: BookingStatus;
+  status: Status;
 
   @Expose()
   @Type(() => UserDto)

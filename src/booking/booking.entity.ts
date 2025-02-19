@@ -1,5 +1,4 @@
 import { User } from 'src/user/user.entity';
-import { BookingStatus } from './enums';
 import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
 import { Class } from 'src/class/class.entity';
 
@@ -8,8 +7,8 @@ export class Booking {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column({ type: 'enum', enum: BookingStatus, default: BookingStatus.PENDING })
-  status: BookingStatus;
+  @Column({ nullable: true })
+  cancelledAt: Date;
 
   @ManyToOne(() => User, (user) => user.bookings, { onDelete: 'CASCADE' })
   user: User;

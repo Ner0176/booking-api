@@ -1,5 +1,5 @@
-export enum ClassStatus {
-  DONE = 'done',
+export enum Status {
   PENDING = 'pending',
   CANCELLED = 'cancelled',
+  COMPLETED = 'completed',
 }

@@ -9,9 +9,8 @@ import { Class } from './class.entity';
 import { FindOneOptions, Repository } from 'typeorm';
 import { CreateClassDto } from './dtos';
 import { RRule } from 'rrule';
-import { createTransaction } from 'src/common';
+import { createTransaction, Status } from 'src/common';
 import { GetAllClassesDto } from './dtos';
-import { ClassStatus } from './enums';
 import { BookingService } from 'src/booking/booking.service';
 
 @Injectable()
@@ -31,13 +30,13 @@ export class ClassService {
 
     if (!!status) {
       switch (status) {
-        case ClassStatus.CANCELLED:
+        case Status.CANCELLED:
           query.where('class.cancelled = :cancelled', { cancelled: true });
           break;
-        case ClassStatus.DONE:
+        case Status.COMPLETED:
           query.where('class.date <= :today', { today });
           break;
-        case ClassStatus.PENDING:
+        case Status.PENDING:
           query.where('class.date >= :today', { today });
           break;
       }

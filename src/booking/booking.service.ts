@@ -10,12 +10,11 @@ import { In, Repository } from 'typeorm';
 import { CreateBookingDto, GetBookingsDto, GetUserBookingsDto } from './dtos';
 import { ClassService } from 'src/class/class.service';
 import { UserService } from 'src/user/user.service';
-import { BookingStatus } from './enums';
-import { createTransaction } from 'src/common';
+import { createTransaction, Status } from 'src/common';
 import { Class } from 'src/class/class.entity';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { ClassConfigsService } from 'src/class-configs/class-configs.service';
-import { differenceInMinutes, startOfMonth } from 'date-fns';
+import { differenceInMinutes, format, startOfMonth } from 'date-fns';
 
 @Injectable()
 export class BookingService {
@@ -56,23 +55,38 @@ export class BookingService {
 
     const query = this.bookingRepository
       .createQueryBuilder('booking')
-      .leftJoinAndSelect('booking.class', 'class')
       .leftJoin('booking.user', 'user')
+      .leftJoinAndSelect('booking.class', 'class')
+      .leftJoinAndSelect('booking.originalClass', 'originalClass')
       .loadRelationCountAndMap('class.currentCount', 'class.bookings')
       .where('user.id = :userId', { userId });
 
-    if (!!status && status.length > 0) {
-      query.andWhere('booking.status IN (:...status)', { status });
+    if (!!status) {
+      const now = new Date();
+      const time = format(now, 'HH:mm');
+
+      if (status === Status.CANCELLED) {
+        query.andWhere('booking.cancelledAt IS NOT NULL');
+      } else {
+        let queryStatus =
+          'class.date < :now OR (class.date = :now AND class.endTime < :time)';
+
+        if (status === Status.PENDING) {
+          queryStatus = `NOT(${queryStatus})`;
+        }
+
+        query.andWhere(queryStatus, { now, time });
+      }
     }
 
-    if (!!startDate && endDate) {
+    if (!!startDate && !!endDate) {
       query.andWhere('class.date BETWEEN :startDate AND :endDate', {
         startDate,
         endDate,
       });
     }
 
-    return await query.getMany();
+    return await query.orderBy('class.date', 'ASC').getMany();
   }
 
   private validateUserIds(userIds: number[]) {
@@ -93,7 +107,7 @@ export class BookingService {
     const classInstances = await this.classService.findByAttrs(filter, {
       relations: ['bookings', 'bookings.user'],
       select: {
-        bookings: { id: true, status: true, user: { id: true } },
+        bookings: { id: true, user: { id: true } },
       },
     });
 
@@ -146,7 +160,6 @@ export class BookingService {
           this.bookingRepository.create({
             user,
             class: classInstance,
-            status: BookingStatus.PENDING,
           }),
         );
         await queryRunner.manager.save(bookings);
@@ -199,7 +212,6 @@ export class BookingService {
             this.bookingRepository.create({
               user,
               class: classInstance,
-              status: BookingStatus.PENDING,
             }),
           );
           await queryRunner.manager.save(bookings);
@@ -230,7 +242,7 @@ export class BookingService {
     const recentCancellations = await this.findBookingsFromUser(userId, {
       endDate: now,
       startDate: startOfMonth(now),
-      status: [BookingStatus.CANCELLED],
+      status: Status.CANCELLED,
     });
     if (recentCancellations.length >= maxCancellationPerMonth) {
       throw new BadRequestException(
@@ -238,7 +250,7 @@ export class BookingService {
       );
     }
 
-    booking.status = BookingStatus.CANCELLED;
+    booking.cancelledAt = new Date();
     booking.originalClass = booking.class;
     booking.class = null;
 

@@ -1,11 +1,11 @@
 import { IsDate, IsEnum, IsOptional } from 'class-validator';
-import { ClassStatus } from '../enums';
 import { Type } from 'class-transformer';
+import { Status } from 'src/common';
 
 export class GetAllClassesDto {
   @IsOptional()
-  @IsEnum(ClassStatus)
-  status: ClassStatus;
+  @IsEnum(Status)
+  status: Status;
 
   @IsDate()
   @IsOptional()

@@ -1,11 +1,11 @@
 import { Type } from 'class-transformer';
 import { IsDate, IsEnum, IsOptional } from 'class-validator';
-import { BookingStatus } from '../enums';
+import { Status } from 'src/common';
 
 export class GetUserBookingsDto {
   @IsOptional()
-  @IsEnum(BookingStatus)
-  status: BookingStatus[];
+  @IsEnum(Status)
+  status: Status;
 
   @IsDate()
   @IsOptional()
