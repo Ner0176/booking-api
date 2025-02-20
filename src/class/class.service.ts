@@ -142,7 +142,6 @@ export class ClassService {
     }
 
     classInstance.cancelled = cancel;
-    await this.classRepository.save(classInstance);
 
     const bookings = cancel
       ? classInstance.bookings || []
@@ -152,14 +151,17 @@ export class ClassService {
 
     for (const booking of bookings) {
       if (cancel) {
-        booking.originalClass = booking.class;
+        booking.originalClass = classInstance;
+        booking.cancelledAt = new Date();
         booking.class = null;
       } else {
-        booking.class = booking.originalClass;
+        booking.class = classInstance;
         booking.originalClass = null;
+        booking.cancelledAt = null;
       }
     }
 
+    await this.classRepository.save(classInstance);
     await this.bookingService.saveBookings(bookings);
   }
 
